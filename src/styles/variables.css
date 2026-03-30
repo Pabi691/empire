@@ -1,0 +1,53 @@
+:root {
+    /* Colors */
+    --primary: #0c328e;
+    --accent: #f06f1f;
+    --white: #ffffff;
+    --dark-navy: #0a0f1e;
+    --soft-gray: #f4f6fb;
+    --text-primary: #0d1b3e;
+    --text-muted: #5a6880;
+    --glass: rgba(255, 255, 255, 0.08);
+    --border-soft: rgba(12, 50, 142, 0.1);
+
+    /* Gradients */
+    --gradient-blue: linear-gradient(135deg, #0c328e 0%, #1a4fbd 100%);
+    --gradient-ora: linear-gradient(135deg, #f06f1f 0%, #f5a623 100%);
+    --gradient-dark: linear-gradient(180deg, #0a0f1e 0%, #0c328e 100%);
+
+    /* Shadows */
+    --shadow-standard: 0 20px 60px rgba(12, 50, 142, 0.12);
+    --shadow-hover: 0 32px 80px rgba(12, 50, 142, 0.22);
+    --shadow-orange: 0 16px 48px rgba(240, 111, 31, 0.35);
+    --shadow-dark-card: 0 8px 32px rgba(0, 0, 0, 0.24);
+
+    /* Typography */
+    --font-display: 'Bebas Neue', cursive;
+    --font-heading: 'Inter', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --font-accent: 'Space Grotesk', sans-serif;
+
+    /* Spacing */
+    --section-py: 100px;
+    --container-max: 1280px;
+    --radius-card: 24px;
+    --radius-pill: 100px;
+    --radius-general: 12px;
+
+    /* Transitions */
+    --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    --duration: 0.7s;
+    --hover-duration: 0.3s;
+}
+
+@media (max-width: 1024px) {
+    :root {
+        --section-py: 60px;
+    }
+}
+
+@media (max-width: 640px) {
+    :root {
+        --section-py: 40px;
+    }
+}
