@@ -409,7 +409,7 @@ export default function CftCalculator() {
     const resetCBM = () => { setCbmValue(''); setCbmPackages('1'); setCbmCftRate(''); setCbmResult(null); };
 
     return (
-        <section ref={sectionRef} className="section-padding relative overflow-hidden bg-slate-900">
+        <section ref={sectionRef} id="freight-calculator" className="section-padding relative overflow-hidden bg-slate-900">
             {/* Background Image Parallax Layer */}
             <motion.div
                 className="absolute inset-0 bg-[url('/cargo-bg.png')] bg-cover bg-center pointer-events-none"
