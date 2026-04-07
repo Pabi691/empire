@@ -6,5 +6,12 @@ export default defineConfig({
     server: {
         open: true,
         port: 3000,
+        proxy: {
+            '/api': {
+                target: 'https://ihwtest.kyleinfotech.co.in',
+                changeOrigin: true,
+                secure: true,
+            },
+        },
     },
 })

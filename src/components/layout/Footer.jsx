@@ -132,12 +132,17 @@ export default function Footer() {
                     <p className="text-gray-500 text-xs text-center md:text-left">
                         © {new Date().getFullYear()} Empire Logistics. All rights reserved. Trade Globally Without Hassle.
                     </p>
-                    <button
-                        onClick={scrollToTop}
-                        className="w-10 h-10 rounded-full bg-accent/20 text-accent flex items-center justify-center hover:bg-accent hover:text-white transition-all duration-300"
-                    >
-                        <FaArrowUp className="text-sm" />
-                    </button>
+                    <div className='flex items-center gap-6'>
+                        <p className='text-gray-500 text-xs text-center md:text-left'>
+                            Designed & Developed by <a href="https://kyleinfotech.co.in/" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">Kyle Infotech</a>
+                        </p>
+                        <button
+                            onClick={scrollToTop}
+                            className="w-10 h-10 rounded-full bg-accent/20 text-accent flex items-center justify-center hover:bg-accent hover:text-white transition-all duration-300"
+                        >
+                            <FaArrowUp className="text-sm" />
+                        </button>
+                    </div>
                 </div>
             </div>
         </footer>

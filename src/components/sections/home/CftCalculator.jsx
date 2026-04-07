@@ -1,12 +1,14 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import SectionTitle from '../../ui/SectionTitle';
 import {
     FaCalculator, FaBox, FaCubes, FaRulerCombined,
     FaExchangeAlt, FaWeightHanging, FaShippingFast,
     FaGlobeAsia, FaTruckMoving, FaWarehouse, FaCheckCircle,
-    FaFileInvoiceDollar
+    FaFileInvoiceDollar, FaPlane, FaShip, FaTruck
 } from 'react-icons/fa';
+import useRates from '../../../hooks/useRates';
 
 const UNIT_OPTIONS = [
     { value: 'mm', label: 'mm' },
@@ -354,6 +356,7 @@ export default function CftCalculator() {
     const sectionRef = useRef(null);
     const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start end', 'end start'] });
     const bgY = useTransform(scrollYProgress, [0, 1], ['-10%', '10%']);
+    const { rates } = useRates();
 
     const [activeTab, setActiveTab] = useState('cft');
 
@@ -368,8 +371,15 @@ export default function CftCalculator() {
     const [cftResult, setCftResult] = useState(null);
 
     // Charged Weight
+    const [cftTransportMode, setCftTransportMode] = useState('');
     const [cftRate, setCftRate] = useState('');
     const [chargedWeightResult, setChargedWeightResult] = useState(null);
+
+    // CBM Transport Mode
+    const [cbmTransportMode, setCbmTransportMode] = useState('');
+
+    // Quotation
+    const [quotationData, setQuotationData] = useState(null);
 
     // CBM State
     const [cbmValue, setCbmValue] = useState('');
@@ -382,7 +392,7 @@ export default function CftCalculator() {
         if (isNaN(l) || isNaN(b) || isNaN(h) || l <= 0 || b <= 0 || h <= 0) { setCftResult({ error: 'Please enter valid dimensions.' }); return; }
         const lFeet = l * TO_FEET[cftLengthUnit]; const bFeet = b * TO_FEET[cftBreadthUnit]; const hFeet = h * TO_FEET[cftHeightUnit];
         const cftPerPackage = lFeet * bFeet * hFeet; const totalCft = cftPerPackage * pkgs; const totalCbm = totalCft / 35.3147;
-        setCftResult({ cftPerPackage: cftPerPackage.toFixed(4), totalCft: totalCft.toFixed(4), totalCbm: totalCbm.toFixed(4), packages: pkgs });
+        setCftResult({ cftPerPackage: cftPerPackage.toFixed(2), totalCft: totalCft.toFixed(2), totalCbm: totalCbm.toFixed(2), packages: pkgs });
         setChargedWeightResult(null);
     };
 
@@ -397,16 +407,17 @@ export default function CftCalculator() {
         const cbm = parseFloat(cbmValue); const pkgs = parseInt(cbmPackages) || 1; const rate = parseFloat(cbmCftRate);
         if (isNaN(cbm) || cbm <= 0) { setCbmResult({ error: 'Please enter a valid CBM value.' }); return; }
         const totalCftPerPkg = cbm * 35.3147; const totalCft = totalCftPerPkg * pkgs; const weight = !isNaN(rate) && rate > 0 ? totalCft * rate : null;
-        setCbmResult({ cftPerPackage: totalCftPerPkg.toFixed(4), totalCft: totalCft.toFixed(4), totalCbm: (cbm * pkgs).toFixed(4), packages: pkgs, weight: weight ? weight.toFixed(2) : null });
+        setCbmResult({ cftPerPackage: totalCftPerPkg.toFixed(2), totalCft: totalCft.toFixed(2), totalCbm: (cbm * pkgs).toFixed(2), packages: pkgs, weight: weight ? weight.toFixed(2) : null });
     };
 
     const resetCFT = () => {
         setCftLength(''); setCftBreadth(''); setCftHeight('');
         setCftLengthUnit('mm'); setCftBreadthUnit('mm'); setCftHeightUnit('mm');
         setNumPackages('1'); setCftResult(null); setCftRate(''); setChargedWeightResult(null);
+        setCftTransportMode('');
     };
 
-    const resetCBM = () => { setCbmValue(''); setCbmPackages('1'); setCbmCftRate(''); setCbmResult(null); };
+    const resetCBM = () => { setCbmValue(''); setCbmPackages('1'); setCbmCftRate(''); setCbmResult(null); setCbmTransportMode(''); };
 
     return (
         <section ref={sectionRef} id="freight-calculator" className="section-padding relative overflow-hidden bg-slate-900">
@@ -460,13 +471,49 @@ export default function CftCalculator() {
                                         <motion.div key="cft" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.3 }} className="h-full flex flex-col">
                                             {/* CFT Content */}
                                             <div className="flex-1">
-                                                <div className="flex items-center gap-3 mb-6">
+                                                <div className="flex items-center gap-3 mb-5">
                                                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-md">
                                                         <FaBox className="text-white text-sm" />
                                                     </div>
                                                     <div>
                                                         <h3 className="font-heading font-extrabold text-text-primary text-base">CFT Calculation</h3>
                                                         <p className="text-text-muted text-xs">Enter dimensions to calculate cubic feet</p>
+                                                    </div>
+                                                </div>
+
+                                                {/* Transport Mode — Tab Style */}
+                                                <div className="mb-6">
+                                                    <label className="block text-sm font-semibold text-text-primary mb-2.5">
+                                                        Transport Mode <span className="text-red-500">*</span>
+                                                    </label>
+                                                    <div className="grid grid-cols-3 gap-2 p-1 bg-gray-100 rounded-2xl">
+                                                        {[
+                                                            { id: 'air',   Icon: FaPlane, label: 'Air Freight',    color: '#0ea5e9' },
+                                                            { id: 'ocean', Icon: FaShip,  label: 'Ocean Freight',  color: '#2563eb' },
+                                                            { id: 'road',  Icon: FaTruck, label: 'Road Transport', color: '#f59e0b' },
+                                                        ].map(({ id, Icon, label, color }) => {
+                                                            const isActive = cftTransportMode === id;
+                                                            return (
+                                                                <button
+                                                                    key={id}
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        setCftTransportMode(id);
+                                                                        setCftRate(rates[id]);
+                                                                        setChargedWeightResult(null);
+                                                                    }}
+                                                                    style={isActive ? { background: color, boxShadow: `0 4px 14px ${color}40` } : {}}
+                                                                    className={`flex flex-row items-center justify-center gap-2 py-2.5 px-2 rounded-xl text-xs font-bold transition-all duration-200 ${
+                                                                        isActive
+                                                                            ? 'text-white'
+                                                                            : 'text-slate-500 hover:bg-white/80 hover:text-slate-700'
+                                                                    }`}
+                                                                >
+                                                                    <Icon className="text-sm flex-shrink-0" />
+                                                                    <span className="leading-tight">{label}</span>
+                                                                </button>
+                                                            );
+                                                        })}
                                                     </div>
                                                 </div>
 
@@ -512,10 +559,6 @@ export default function CftCalculator() {
                                                             <h4 className="font-heading font-bold text-white text-sm flex items-center gap-2"><FaWeightHanging className="text-[13px]" />Charged Weight Calculation</h4>
                                                         </div>
                                                     </div>
-                                                    <div className="mb-4">
-                                                        <label className="block text-sm font-medium text-text-primary mb-1.5">1 CFT Rate (/Kg)</label>
-                                                        <input type="number" value={cftRate} onChange={(e) => setCftRate(e.target.value)} placeholder="Enter 1 CFT value (Kg)" className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-text-primary bg-white focus:outline-none focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400 transition-all" />
-                                                    </div>
                                                     <button onClick={calculateChargedWeight} className="flex items-center gap-2 px-7 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-white font-heading font-bold text-sm shadow-lg shadow-blue-500/25 hover:shadow-xl hover:-translate-y-0.5 transition-all">
                                                         <FaCalculator className="text-sm" />Calculate Charged Weight
                                                     </button>
@@ -524,9 +567,8 @@ export default function CftCalculator() {
                                                             <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mt-5">
                                                                 <div className="p-5 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 shadow-sm">
                                                                     <h4 className="font-heading font-bold text-text-primary text-xs uppercase tracking-wider mb-3 flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-amber-500" />Charged Weight Result</h4>
-                                                                    <div className="grid grid-cols-3 gap-3">
+                                                                    <div className="grid grid-cols-2 gap-3">
                                                                         <ResultCard label="Total CFT" value={chargedWeightResult.totalCft} unit="ft³" color="primary" />
-                                                                        <ResultCard label="Applied Rate" value={chargedWeightResult.rate} unit="Kg/CFT" color="accent" />
                                                                         <div className="rounded-xl bg-white p-3.5 border border-amber-300 shadow-md">
                                                                             <p className="text-text-muted text-xs mb-1 font-medium">Final Weight</p>
                                                                             <p className="font-heading font-black text-xl text-amber-600">{chargedWeightResult.chargedWeight}<span className="text-[10px] font-normal text-text-muted ml-1">Kg</span></p>
@@ -551,7 +593,19 @@ export default function CftCalculator() {
                                                             By pressing the button below, you can generate a formal quotation request using your calculated dimensions.
                                                         </p>
                                                     </div>
-                                                    <button className="whitespace-nowrap w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-text-primary text-white font-heading font-bold text-sm shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                                                    <button
+                                                        onClick={() => setQuotationData({
+                                                            type: 'cft',
+                                                            transportMode: cftTransportMode,
+                                                            dimensions: { length: cftLength, breadth: cftBreadth, height: cftHeight, lengthUnit: cftLengthUnit, breadthUnit: cftBreadthUnit, heightUnit: cftHeightUnit },
+                                                            packages: numPackages,
+                                                            cftResult,
+                                                            chargedWeightResult,
+                                                            rate: cftRate,
+                                                        })}
+                                                        disabled={!cftResult || !!cftResult.error}
+                                                        className="whitespace-nowrap w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-text-primary text-white font-heading font-bold text-sm shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-md disabled:hover:translate-y-0"
+                                                    >
                                                         Generate Quotation
                                                     </button>
                                                 </div>
@@ -560,7 +614,7 @@ export default function CftCalculator() {
                                     ) : (
                                         <motion.div key="cbm" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }} className="h-full flex flex-col">
                                             <div className="flex-1">
-                                                <div className="flex items-center gap-3 mb-6">
+                                                <div className="flex items-center gap-3 mb-5">
                                                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent to-accent/80 flex items-center justify-center shadow-md">
                                                         <FaExchangeAlt className="text-white text-sm" />
                                                     </div>
@@ -569,6 +623,42 @@ export default function CftCalculator() {
                                                         <p className="text-text-muted text-xs">Convert cubic meters to cubic feet</p>
                                                     </div>
                                                 </div>
+
+                                                {/* Transport Mode — Tab Style */}
+                                                <div className="mb-6">
+                                                    <label className="block text-sm font-semibold text-text-primary mb-2.5">
+                                                        Transport Mode <span className="text-red-500">*</span>
+                                                    </label>
+                                                    <div className="grid grid-cols-3 gap-2 p-1 bg-gray-100 rounded-2xl">
+                                                        {[
+                                                            { id: 'air',   Icon: FaPlane, label: 'Air Freight',    color: '#0ea5e9' },
+                                                            { id: 'ocean', Icon: FaShip,  label: 'Ocean Freight',  color: '#2563eb' },
+                                                            { id: 'road',  Icon: FaTruck, label: 'Road Transport', color: '#f59e0b' },
+                                                        ].map(({ id, Icon, label, color }) => {
+                                                            const isActive = cbmTransportMode === id;
+                                                            return (
+                                                                <button
+                                                                    key={id}
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        setCbmTransportMode(id);
+                                                                        setCbmCftRate(rates[id]);
+                                                                    }}
+                                                                    style={isActive ? { background: color, boxShadow: `0 4px 14px ${color}40` } : {}}
+                                                                    className={`flex flex-row items-center justify-center gap-2 py-2.5 px-2 rounded-xl text-xs font-bold transition-all duration-200 ${
+                                                                        isActive
+                                                                            ? 'text-white'
+                                                                            : 'text-slate-500 hover:bg-white/80 hover:text-slate-700'
+                                                                    }`}
+                                                                >
+                                                                    <Icon className="text-sm flex-shrink-0" />
+                                                                    <span className="leading-tight">{label}</span>
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+
                                                 <div className="space-y-4 mb-6">
                                                     <div>
                                                         <label className="block text-sm font-medium text-text-primary mb-1.5">Enter CBM</label>
@@ -577,10 +667,6 @@ export default function CftCalculator() {
                                                     <div>
                                                         <label className="block text-sm font-medium text-text-primary mb-1.5">No. of Packages</label>
                                                         <input type="number" value={cbmPackages} onChange={(e) => setCbmPackages(e.target.value)} min="1" placeholder="Enter no. of packages" className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-text-primary bg-white focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all" />
-                                                    </div>
-                                                    <div>
-                                                        <label className="block text-sm font-medium text-text-primary mb-1.5">1 CFT Rate (Kg) <span className="text-text-muted font-normal">— optional</span></label>
-                                                        <input type="number" value={cbmCftRate} onChange={(e) => setCbmCftRate(e.target.value)} placeholder="Enter 1 CFT value (Kg)" className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-text-primary bg-white focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all" />
                                                     </div>
                                                 </div>
                                                 <div className="flex gap-3 mb-6">
@@ -619,7 +705,18 @@ export default function CftCalculator() {
                                                             By pressing the button below, you can generate a formal quotation request based on your calculated results.
                                                         </p>
                                                     </div>
-                                                    <button className="whitespace-nowrap w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-text-primary text-white font-heading font-bold text-sm shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                                                    <button
+                                                        onClick={() => setQuotationData({
+                                                            type: 'cbm',
+                                                            transportMode: cbmTransportMode,
+                                                            cbmValue,
+                                                            packages: cbmPackages,
+                                                            cbmResult,
+                                                            rate: cbmCftRate,
+                                                        })}
+                                                        disabled={!cbmResult || !!cbmResult.error}
+                                                        className="whitespace-nowrap w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-text-primary text-white font-heading font-bold text-sm shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-md disabled:hover:translate-y-0"
+                                                    >
                                                         Generate Quotation
                                                     </button>
                                                 </div>
@@ -632,6 +729,9 @@ export default function CftCalculator() {
                     </motion.div>
                 </div>
             </div>
+        {quotationData && (
+            <QuotationModal data={quotationData} onClose={() => setQuotationData(null)} />
+        )}
         </section>
     );
 }
@@ -644,5 +744,206 @@ function ResultCard({ label, value, unit, color }) {
                 {value}<span className="text-[10px] font-normal text-text-muted ml-1">{unit}</span>
             </p>
         </motion.div>
+    );
+}
+
+/* ============================================================
+   QUOTATION MODAL
+   ============================================================ */
+const TRANSPORT_INFO = {
+    air:   { label: 'Air Freight',    icon: '✈️', color: '#0ea5e9' },
+    ocean: { label: 'Ocean Freight',  icon: '🚢', color: '#2563eb' },
+    road:  { label: 'Road Transport', icon: '🚚', color: '#f59e0b' },
+};
+
+function QuotationModal({ data, onClose }) {
+    const quotationNo = useRef(`EMP-${new Date().getFullYear()}-${Math.floor(Math.random() * 90000 + 10000)}`);
+    const today      = new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' });
+    const validUntil = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+                           .toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    const transport = data.transportMode ? TRANSPORT_INFO[data.transportMode] : null;
+    const result    = data.type === 'cft' ? data.cftResult : data.cbmResult;
+    const finalWeight = data.type === 'cft'
+        ? data.chargedWeightResult?.chargedWeight
+        : data.cbmResult?.weight;
+
+    return createPortal(
+        <>
+            <style>{`
+                @media print {
+                    body > *:not(#quotation-print-root) { display: none !important; }
+                    #quotation-print-root { position: static !important; background: none !important; padding: 0 !important; display: block !important; }
+                    #quotation-print-root > div { box-shadow: none !important; border-radius: 0 !important; max-height: none !important; }
+                    #quotation-modal-actions { display: none !important; }
+                }
+            `}</style>
+
+            <div id="quotation-print-root"
+                className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-start justify-center p-4 overflow-y-auto"
+                onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+            >
+                <motion.div
+                    initial={{ opacity: 0, y: 30, scale: 0.97 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 20 }}
+                    transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                    className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl my-6 overflow-hidden"
+                >
+                    {/* ── Header ── */}
+                    <div className="bg-slate-900 px-8 py-6 flex justify-between items-start">
+                        <div className="flex items-center gap-3">
+                            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg">
+                                <FaGlobeAsia className="text-white text-lg" />
+                            </div>
+                            <div>
+                                <h1 className="font-heading font-black text-white text-xl tracking-wide leading-none">EMPIRE</h1>
+                                <p className="text-orange-400 text-[10px] font-semibold tracking-[3px] uppercase mt-0.5">Logistics & Cargo</p>
+                            </div>
+                        </div>
+                        <div className="text-right">
+                            <p className="text-white/40 text-[10px] uppercase tracking-widest mb-1">Freight Quotation</p>
+                            <p className="text-white font-mono font-bold text-sm">{quotationNo.current}</p>
+                        </div>
+                    </div>
+
+                    {/* ── Info bar ── */}
+                    <div className="bg-slate-800 px-8 py-2.5 flex flex-wrap justify-between gap-2 text-xs">
+                        <span className="text-white/50">Date: <span className="text-white/80 font-medium">{today}</span></span>
+                        <span className="text-white/50">Valid Until: <span className="text-orange-400 font-semibold">{validUntil}</span></span>
+                        {transport && (
+                            <span className="text-white/50">Mode: <span className="font-semibold" style={{ color: transport.color }}>{transport.icon} {transport.label}</span></span>
+                        )}
+                    </div>
+
+                    {/* ── Body ── */}
+                    <div className="p-8 space-y-6">
+
+                        {/* Shipment Details */}
+                        <div>
+                            <h3 className="flex items-center gap-2 font-heading font-bold text-slate-500 text-[10px] uppercase tracking-widest mb-3">
+                                <span className="w-5 h-0.5 bg-orange-500 rounded-full" />Shipment Details
+                            </h3>
+                            <div className="rounded-xl border border-slate-100 overflow-hidden">
+                                <table className="w-full text-sm">
+                                    <tbody className="divide-y divide-slate-50">
+                                        {data.type === 'cft' ? (
+                                            <>
+                                                <tr className="bg-white">
+                                                    <td className="px-5 py-2.5 text-slate-400 font-medium w-48">Length</td>
+                                                    <td className="px-5 py-2.5 text-slate-800 font-semibold">{data.dimensions.length} {data.dimensions.lengthUnit}</td>
+                                                </tr>
+                                                <tr className="bg-slate-50/50">
+                                                    <td className="px-5 py-2.5 text-slate-400 font-medium">Breadth</td>
+                                                    <td className="px-5 py-2.5 text-slate-800 font-semibold">{data.dimensions.breadth} {data.dimensions.breadthUnit}</td>
+                                                </tr>
+                                                <tr className="bg-white">
+                                                    <td className="px-5 py-2.5 text-slate-400 font-medium">Height</td>
+                                                    <td className="px-5 py-2.5 text-slate-800 font-semibold">{data.dimensions.height} {data.dimensions.heightUnit}</td>
+                                                </tr>
+                                            </>
+                                        ) : (
+                                            <tr className="bg-white">
+                                                <td className="px-5 py-2.5 text-slate-400 font-medium w-48">CBM Value</td>
+                                                <td className="px-5 py-2.5 text-slate-800 font-semibold">{data.cbmValue} m³</td>
+                                            </tr>
+                                        )}
+                                        <tr className="bg-slate-50/50">
+                                            <td className="px-5 py-2.5 text-slate-400 font-medium">No. of Packages</td>
+                                            <td className="px-5 py-2.5 text-slate-800 font-semibold">{data.packages}</td>
+                                        </tr>
+                                        <tr className="bg-white">
+                                            <td className="px-5 py-2.5 text-slate-400 font-medium">Transport Mode</td>
+                                            <td className="px-5 py-2.5 font-bold" style={{ color: transport?.color ?? '#64748b' }}>
+                                                {transport ? `${transport.icon} ${transport.label}` : '—'}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        {/* Calculation Summary */}
+                        {result && (
+                            <div>
+                                <h3 className="flex items-center gap-2 font-heading font-bold text-slate-500 text-[10px] uppercase tracking-widest mb-3">
+                                    <span className="w-5 h-0.5 bg-orange-500 rounded-full" />Calculation Summary
+                                </h3>
+                                <div className="grid grid-cols-3 gap-3">
+                                    <div className="bg-blue-50 rounded-xl p-4 border border-blue-100 text-center">
+                                        <p className="text-slate-400 text-xs mb-1.5">CFT / Package</p>
+                                        <p className="font-heading font-black text-blue-700 text-2xl leading-none">{result.cftPerPackage}</p>
+                                        <p className="text-slate-400 text-[10px] mt-1">ft³</p>
+                                    </div>
+                                    <div className="bg-orange-50 rounded-xl p-4 border border-orange-100 text-center">
+                                        <p className="text-slate-400 text-xs mb-1.5">Total CFT</p>
+                                        <p className="font-heading font-black text-orange-600 text-2xl leading-none">{result.totalCft}</p>
+                                        <p className="text-slate-400 text-[10px] mt-1">ft³</p>
+                                    </div>
+                                    <div className="bg-blue-50 rounded-xl p-4 border border-blue-100 text-center">
+                                        <p className="text-slate-400 text-xs mb-1.5">Total CBM</p>
+                                        <p className="font-heading font-black text-blue-700 text-2xl leading-none">{result.totalCbm}</p>
+                                        <p className="text-slate-400 text-[10px] mt-1">m³</p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Freight Charges */}
+                        {finalWeight && (
+                            <div>
+                                <h3 className="flex items-center gap-2 font-heading font-bold text-slate-500 text-[10px] uppercase tracking-widest mb-3">
+                                    <span className="w-5 h-0.5 bg-orange-500 rounded-full" />Freight Charges
+                                </h3>
+                                <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-5 border border-amber-200">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <p className="text-slate-400 text-xs mb-1">Charged Weight</p>
+                                            <p className="font-heading font-black text-amber-600 text-4xl leading-none">
+                                                {finalWeight}<span className="text-base font-normal text-slate-400 ml-2">Kg</span>
+                                            </p>
+                                        </div>
+                                        {data.rate && (
+                                            <div className="text-right bg-white rounded-xl px-5 py-3 border border-amber-100 shadow-sm">
+                                                <p className="text-slate-400 text-xs mb-1">Applied Rate</p>
+                                                <p className="font-heading font-bold text-slate-700 text-xl">{data.rate} <span className="text-xs text-slate-400 font-normal">/Kg</span></p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Terms */}
+                        <div className="border-t border-slate-100 pt-4">
+                            <p className="text-slate-400 text-xs leading-relaxed">
+                                <span className="font-semibold text-slate-500">Terms & Conditions: </span>
+                                This quotation is valid for 7 days from the date of issue. Rates are subject to change based on actual shipment dimensions and weight. All charges are exclusive of applicable taxes and duties. Final charges may vary based on actual cargo measurements at the time of shipment.
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* ── Footer Actions ── */}
+                    <div id="quotation-modal-actions" className="border-t border-slate-100 px-8 py-4 bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-3">
+                        <p className="text-slate-400 text-xs text-center sm:text-left">Empire Logistics & Cargo · enquiry@empirelogistics.in</p>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => window.print()}
+                                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-900 text-white text-sm font-bold hover:bg-slate-700 transition-all"
+                            >
+                                <FaFileInvoiceDollar className="text-xs" /> Print / Save PDF
+                            </button>
+                            <button
+                                onClick={onClose}
+                                className="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-white transition-all"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </motion.div>
+            </div>
+        </>,
+        document.body
     );
 }

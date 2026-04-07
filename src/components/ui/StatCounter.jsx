@@ -3,13 +3,13 @@ import CountUp from 'react-countup';
 import { useInView } from 'react-intersection-observer';
 import { motion } from 'framer-motion';
 
-export default function StatCounter({ value, suffix = '', prefix = '', label, icon, index = 0, color = '#f06f1f' }) {
+export default function StatCounter({ value, suffix = '', prefix = '', label, icon, index = 0, color = '#f06f1f', align = 'center' }) {
     const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.3 });
 
     return (
-        <div ref={ref} className="text-center relative">
+        <div ref={ref} className={`relative ${align === 'left' ? 'text-left' : 'text-center'}`}>
             {/* Animated number */}
-            <div className="font-display text-5xl md:text-[56px] lg:text-[64px] text-white mb-1.5 leading-none tracking-tight">
+            <div className="font-display text-4xl md:text-5xl lg:text-[56px] text-white mb-1 leading-none tracking-tight">
                 {inView ? (
                     <>
                         {prefix}

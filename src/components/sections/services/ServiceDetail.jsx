@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import services from '../../../data/services';
+import useServices from '../../../hooks/useServices';
 import { FaShip, FaPlane, FaTruck, FaWarehouse, FaTrain, FaFileAlt, FaBoxes, FaGlobeAmericas, FaCheckCircle, FaArrowRight } from 'react-icons/fa';
 import Button from '../../ui/Button';
 
@@ -19,6 +19,7 @@ const serviceImages = {
 };
 
 export default function ServiceDetail() {
+    const { services } = useServices();
     return (
         <section className="section-padding bg-white">
             <div className="container-empire space-y-24">

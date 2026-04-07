@@ -113,7 +113,7 @@ export default function StatsBar() {
                                 className="relative group cursor-default"
                             >
                                 {/* Card with glass border */}
-                                <div className="relative py-10 md:py-14 px-6 text-center overflow-hidden"
+                                <div className="relative py-8 md:py-10 px-6 overflow-hidden flex items-center gap-4 md:gap-5"
                                     style={{
                                         borderRight: i < 3 ? '1px solid rgba(255,255,255,0.04)' : 'none',
                                     }}
@@ -128,7 +128,7 @@ export default function StatsBar() {
 
                                     {/* Floating icon */}
                                     <motion.div
-                                        className="mx-auto mb-5 w-14 h-14 rounded-2xl flex items-center justify-center relative"
+                                        className="flex-shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center relative"
                                         whileHover={{ y: -4, scale: 1.05 }}
                                         transition={{ duration: 0.3 }}
                                         style={{
@@ -158,6 +158,7 @@ export default function StatsBar() {
                                         label={stat.label}
                                         index={i}
                                         color={stat.color}
+                                        align="left"
                                     />
 
                                     {/* Bottom accent bar on hover */}

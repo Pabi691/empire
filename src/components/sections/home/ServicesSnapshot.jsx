@@ -3,10 +3,11 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import SectionTitle from '../../ui/SectionTitle';
 import ServiceCard from '../../ui/ServiceCard';
 import Button from '../../ui/Button';
-import services from '../../../data/services';
+import useServices from '../../../hooks/useServices';
 import { FaArrowRight } from 'react-icons/fa';
 
 export default function ServicesSnapshot() {
+    const { services } = useServices();
     const ref = useRef(null);
     const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] });
     const bgY = useTransform(scrollYProgress, [0, 1], ['-6%', '6%']);
