@@ -5,7 +5,7 @@ export default function useRates() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch('/api/get_rates.php')
+        fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/get_rates.php`)
             .then(res => {
                 if (!res.ok) throw new Error('Network response was not ok');
                 return res.json();
