@@ -554,11 +554,7 @@ export default function CftCalculator() {
                                                 </AnimatePresence>
 
                                                 <div className="border-t border-gray-100 pt-6">
-                                                    <div className="rounded-xl overflow-hidden mb-4 shadow-sm border border-amber-500/10">
-                                                        <div className="bg-gradient-to-r from-amber-400 to-amber-500 px-5 py-3">
-                                                            <h4 className="font-heading font-bold text-white text-sm flex items-center gap-2"><FaWeightHanging className="text-[13px]" />Charged Weight Calculation</h4>
-                                                        </div>
-                                                    </div>
+                                                    <h4 className="font-heading font-bold text-amber-500 text-sm flex items-center gap-2 mb-4"><FaWeightHanging className="text-[13px]" />Charged Weight Calculation</h4>
                                                     <button onClick={calculateChargedWeight} className="flex items-center gap-2 px-7 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-white font-heading font-bold text-sm shadow-lg shadow-blue-500/25 hover:shadow-xl hover:-translate-y-0.5 transition-all">
                                                         <FaCalculator className="text-sm" />Calculate Charged Weight
                                                     </button>
