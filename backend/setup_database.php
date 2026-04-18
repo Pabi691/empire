@@ -139,6 +139,50 @@ try {
         echo "Data already exists. Skipping insertion to avoid duplicates.<br>";
     }
 
+    // 3. quotation_requests table
+    $pdo->exec("
+    CREATE TABLE IF NOT EXISTS quotation_requests (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        quotation_no VARCHAR(30),
+        name VARCHAR(150) NOT NULL,
+        email VARCHAR(200) NOT NULL,
+        phone VARCHAR(30) NOT NULL,
+        calc_type VARCHAR(10),
+        transport_mode VARCHAR(20),
+        packages INT DEFAULT 0,
+        total_cft DECIMAL(10,2) DEFAULT 0,
+        total_cbm DECIMAL(10,2) DEFAULT 0,
+        charged_weight DECIMAL(10,2) DEFAULT 0,
+        rate DECIMAL(10,2) DEFAULT 0,
+        created_at DATETIME NOT NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    ");
+    echo "Table 'quotation_requests' created or already exists.<br>";
+
+    // 4. blog_posts table
+    $pdo->exec("
+    CREATE TABLE IF NOT EXISTS blog_posts (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        title VARCHAR(255) NOT NULL,
+        slug VARCHAR(255) NOT NULL UNIQUE,
+        tag VARCHAR(100),
+        excerpt TEXT,
+        content LONGTEXT,
+        read_time VARCHAR(30),
+        cover_image VARCHAR(500),
+        status ENUM('draft','published') DEFAULT 'draft',
+        published_date DATE,
+        created_at DATETIME NOT NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    ");
+    echo "Table 'blog_posts' created or already exists.<br>";
+
+    // 5. Ensure CBM rate settings keys exist
+    $cbmKeys = ['rate_air_cbm','rate_ocean_cbm','rate_road_cbm'];
+    $ins = $pdo->prepare("INSERT IGNORE INTO settings (setting_key, setting_value) VALUES (?,?)");
+    foreach ($cbmKeys as $k) { $ins->execute([$k, '0']); }
+    echo "CBM rate settings initialised.<br>";
+
     echo "<h3>Setup Complete!</h3>";
     echo "<p><a href='admin/index.php'>Go to Admin Dashboard</a></p>";
 

@@ -1,15 +1,15 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import SectionTitle from '../../ui/SectionTitle';
-import { FaShieldAlt, FaClock, FaRoute, FaHeadset, FaCertificate, FaChartLine, FaCheckCircle } from 'react-icons/fa';
+import { FaFileAlt, FaClock, FaRoute, FaHeadset, FaCertificate, FaChartLine, FaCheckCircle } from 'react-icons/fa';
 
 const reasons = [
-    { icon: <FaShieldAlt />, title: 'MTO Licensed', desc: 'Fully licensed by DG Shipping (MTO/DGS/4022) for regulatory compliance.' },
-    { icon: <FaClock />, title: 'On-Time Delivery', desc: '99.2% on-time record across all our freight routes and services.', showProgress: true },
-    { icon: <FaRoute />, title: '6 Countries', desc: 'Cross-border expertise spanning India, Bangladesh, Nepal, Bhutan, Malaysia & UAE.' },
-    { icon: <FaHeadset />, title: '24/7 Support', desc: 'Dedicated support team available round the clock for real-time updates.' },
-    { icon: <FaCertificate />, title: 'MSME Certified', desc: 'Government-certified MSME ensuring quality and trust (UDYAM-WB-10-0062282).' },
-    { icon: <FaChartLine />, title: 'Transparent Pricing', desc: 'No hidden fees. Clear, competitive pricing for every shipment.' },
+    { icon: <FaRoute />, title: 'Extensive Cross-Border Network', desc: 'Our extensive cross-border logistics network across India, Bangladesh, Nepal, Bhutan, and Malaysia makes your shipment reach its destination efficiently, backed by reliable cross-border coordination.' },
+    { icon: <FaFileAlt />, title: 'TP Shipments Expertise', desc: 'Our expertise in TP Shipments, Land-Air & Sea-Air Movements, and Re-Exports ensures that your cargo moves seamlessly, without delays or permit hassles.' },
+    { icon: <FaClock />, title: 'Real-Time Cargo Tracking', desc: 'End-to-end real-time cargo tracking across every stage of transit.', showProgress: true },
+    { icon: <FaCertificate />, title: 'Dedicated Customs Handling', desc: 'In-house team of Dedicated Customs Handling ensuring full compliance and swift clearance at every border.' },
+    { icon: <FaChartLine />, title: 'Tech-Driven Supply Chain', desc: 'Adaptive & tech-driven logistics solutions for the unique needs of diverse industries, with streamlined warehousing and distribution.' },
+    { icon: <FaHeadset />, title: '24/7 Multilingual Support', desc: '24/7 Customer Support with multilingual coordination — always available when your shipment needs us most.' },
 ];
 
 const stats = [

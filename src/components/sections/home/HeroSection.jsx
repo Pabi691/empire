@@ -13,6 +13,16 @@ import {
 /* ═══════════════ SLIDE DATA ═══════════════ */
 const slides = [
     {
+        id: 0,
+        image: '/petrapole.png',
+        icon: FaGlobeAsia,
+        tagline: 'Cross-Border Logistics',
+        headline: ['CROSSING', 'BORDERS,', 'CREATING PATHWAYS'],
+        description: 'Technology-driven freight solutions connecting India with Nepal, Bhutan and Malaysia. Serving 23 States and 5 Union Territories — with speed and precision.',
+        accentWord: 2,
+        stat: { value: '23', label: 'States Covered' },
+    },
+    {
         id: 1,
         image: '/carousel-shipping.png',
         icon: FaShip,

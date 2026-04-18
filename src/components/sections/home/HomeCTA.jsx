@@ -61,11 +61,13 @@ export default function HomeCTA() {
                         Ready to Ship?
                     </span>
                     <h2 className="font-heading font-extrabold text-h2-mobile md:text-[48px] text-white mb-5 max-w-3xl mx-auto">
-                        Let&apos;s Move Your Cargo <span className="gradient-text-orange">Across Borders</span>
+                        Let&apos;s Make Your Next Shipment <span className="gradient-text-orange">Hassle-Free</span>
                     </h2>
-                    <p className="text-blue-100 text-lg max-w-2xl mx-auto mb-8">
-                        Get a free quote within 24 hours. Our expert team is ready to handle your shipment
-                        with the care and precision it deserves.
+                    <p className="text-blue-100 text-lg max-w-2xl mx-auto mb-2">
+                        Connect with our experts at Empire Logistics today for customized logistics solutions.
+                    </p>
+                    <p className="text-blue-200/80 text-base max-w-xl mx-auto mb-8">
+                        From quote to delivery — we&apos;ve got you covered.
                     </p>
                     <div className="flex flex-wrap gap-4 justify-center">
                         {/* Pulsing glow CTA */}

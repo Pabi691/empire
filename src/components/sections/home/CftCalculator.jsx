@@ -356,7 +356,8 @@ export default function CftCalculator() {
     const sectionRef = useRef(null);
     const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start end', 'end start'] });
     const bgY = useTransform(scrollYProgress, [0, 1], ['-10%', '10%']);
-    const { rates } = useRates();
+    const { rates: allRates } = useRates();
+    const rates = allRates; // { cft: {air,ocean,road}, cbm: {air,ocean,road} }
 
     const [activeTab, setActiveTab] = useState('cft');
 
@@ -378,6 +379,10 @@ export default function CftCalculator() {
     // CBM Transport Mode
     const [cbmTransportMode, setCbmTransportMode] = useState('');
 
+    // Transport mode validation errors
+    const [cftTransportError, setCftTransportError] = useState(false);
+    const [cbmTransportError, setCbmTransportError] = useState(false);
+
     // Quotation
     const [quotationData, setQuotationData] = useState(null);
 
@@ -388,6 +393,8 @@ export default function CftCalculator() {
     const [cbmResult, setCbmResult] = useState(null);
 
     const calculateCFT = () => {
+        if (!cftTransportMode) { setCftTransportError(true); setCftResult({ error: 'Please select a transport mode.' }); return; }
+        setCftTransportError(false);
         const l = parseFloat(cftLength); const b = parseFloat(cftBreadth); const h = parseFloat(cftHeight); const pkgs = parseInt(numPackages) || 1;
         if (isNaN(l) || isNaN(b) || isNaN(h) || l <= 0 || b <= 0 || h <= 0) { setCftResult({ error: 'Please enter valid dimensions.' }); return; }
         const lFeet = l * TO_FEET[cftLengthUnit]; const bFeet = b * TO_FEET[cftBreadthUnit]; const hFeet = h * TO_FEET[cftHeightUnit];
@@ -404,6 +411,8 @@ export default function CftCalculator() {
     };
 
     const calculateCBM = () => {
+        if (!cbmTransportMode) { setCbmTransportError(true); setCbmResult({ error: 'Please select a transport mode.' }); return; }
+        setCbmTransportError(false);
         const cbm = parseFloat(cbmValue); const pkgs = parseInt(cbmPackages) || 1; const rate = parseFloat(cbmCftRate);
         if (isNaN(cbm) || cbm <= 0) { setCbmResult({ error: 'Please enter a valid CBM value.' }); return; }
         const totalCftPerPkg = cbm * 35.3147; const totalCft = totalCftPerPkg * pkgs; const weight = !isNaN(rate) && rate > 0 ? totalCft * rate : null;
@@ -414,10 +423,10 @@ export default function CftCalculator() {
         setCftLength(''); setCftBreadth(''); setCftHeight('');
         setCftLengthUnit('mm'); setCftBreadthUnit('mm'); setCftHeightUnit('mm');
         setNumPackages('1'); setCftResult(null); setCftRate(''); setChargedWeightResult(null);
-        setCftTransportMode('');
+        setCftTransportMode(''); setCftTransportError(false);
     };
 
-    const resetCBM = () => { setCbmValue(''); setCbmPackages('1'); setCbmCftRate(''); setCbmResult(null); setCbmTransportMode(''); };
+    const resetCBM = () => { setCbmValue(''); setCbmPackages('1'); setCbmCftRate(''); setCbmResult(null); setCbmTransportMode(''); setCbmTransportError(false); };
 
     return (
         <section ref={sectionRef} id="freight-calculator" className="section-padding relative overflow-hidden bg-slate-900">
@@ -436,7 +445,7 @@ export default function CftCalculator() {
             <div className="container-empire relative z-10">
                 <SectionTitle
                     label="Logistics Tools"
-                    title="Freight Calculator"
+                    title="Weight Calculator"
                     subtitle="Quickly calculate cubic feet (CFT), convert CBM, and determine freight charged weight for your shipments."
                     light={true}
                 />
@@ -486,12 +495,13 @@ export default function CftCalculator() {
                                                     <label className="block text-sm font-semibold text-text-primary mb-2.5">
                                                         Transport Mode <span className="text-red-500">*</span>
                                                     </label>
-                                                    <div className="grid grid-cols-3 gap-2 p-1 bg-gray-100 rounded-2xl">
+                                                    <div className={`grid gap-3 p-2 rounded-2xl transition-all duration-200 ${cftTransportError ? 'bg-red-50 ring-2 ring-red-400' : 'bg-gray-100'}`}
+                                                         style={{ gridTemplateColumns: `repeat(${[rates.cft?.air, rates.cft?.ocean, rates.cft?.road].filter(Boolean).length || 1}, minmax(0,1fr))` }}>
                                                         {[
                                                             { id: 'air',   Icon: FaPlane, label: 'Air Freight',    color: '#0ea5e9' },
                                                             { id: 'ocean', Icon: FaShip,  label: 'Ocean Freight',  color: '#2563eb' },
                                                             { id: 'road',  Icon: FaTruck, label: 'Road Transport', color: '#f59e0b' },
-                                                        ].map(({ id, Icon, label, color }) => {
+                                                        ].filter(({ id }) => rates.cft?.[id]).map(({ id, Icon, label, color }) => {
                                                             const isActive = cftTransportMode === id;
                                                             return (
                                                                 <button
@@ -499,15 +509,21 @@ export default function CftCalculator() {
                                                                     type="button"
                                                                     onClick={() => {
                                                                         setCftTransportMode(id);
-                                                                        setCftRate(rates[id]);
+                                                                        setCftRate(rates.cft[id]);
                                                                         setChargedWeightResult(null);
+                                                                        setCftTransportError(false);
                                                                     }}
-                                                                    style={isActive ? { background: color, boxShadow: `0 4px 14px ${color}40` } : {}}
-                                                                    className={`flex flex-row items-center justify-center gap-2 py-2.5 px-2 rounded-xl text-xs font-bold transition-all duration-200 ${
+                                                                    style={isActive
+                                                                        ? { background: color, borderColor: color, boxShadow: `0 0 18px ${color}70, 0 0 6px ${color}50, 0 4px 12px ${color}40` }
+                                                                        : { borderColor: `${color}55`, color: color, boxShadow: `inset 0 0 0 0 ${color}` }
+                                                                    }
+                                                                    className={`flex flex-row items-center justify-center gap-2 py-3 px-2 rounded-xl text-xs font-bold border-2 cursor-pointer transition-all duration-250 select-none ${
                                                                         isActive
-                                                                            ? 'text-white'
-                                                                            : 'text-slate-500 hover:bg-white/80 hover:text-slate-700'
+                                                                            ? 'text-white scale-[1.03]'
+                                                                            : 'bg-white hover:scale-[1.03]'
                                                                     }`}
+                                                                    onMouseEnter={e => { if (!isActive) e.currentTarget.style.boxShadow = `0 0 12px ${color}45, 0 2px 8px ${color}30`; }}
+                                                                    onMouseLeave={e => { if (!isActive) e.currentTarget.style.boxShadow = `inset 0 0 0 0 ${color}`; }}
                                                                 >
                                                                     <Icon className="text-sm flex-shrink-0" />
                                                                     <span className="leading-tight">{label}</span>
@@ -515,6 +531,12 @@ export default function CftCalculator() {
                                                             );
                                                         })}
                                                     </div>
+                                                    {cftTransportError && (
+                                                        <p className="mt-2 text-xs text-red-500 font-medium flex items-center gap-1.5">
+                                                            <span className="inline-block w-3.5 h-3.5 rounded-full bg-red-500 text-white text-[9px] flex items-center justify-center font-bold">!</span>
+                                                            Please select a transport mode before calculating.
+                                                        </p>
+                                                    )}
                                                 </div>
 
                                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mb-5">
@@ -625,12 +647,13 @@ export default function CftCalculator() {
                                                     <label className="block text-sm font-semibold text-text-primary mb-2.5">
                                                         Transport Mode <span className="text-red-500">*</span>
                                                     </label>
-                                                    <div className="grid grid-cols-3 gap-2 p-1 bg-gray-100 rounded-2xl">
+                                                    <div className={`grid gap-3 p-2 rounded-2xl transition-all duration-200 ${cbmTransportError ? 'bg-red-50 ring-2 ring-red-400' : 'bg-gray-100'}`}
+                                                         style={{ gridTemplateColumns: `repeat(${[rates.cbm?.air, rates.cbm?.ocean, rates.cbm?.road].filter(Boolean).length || 1}, minmax(0,1fr))` }}>
                                                         {[
                                                             { id: 'air',   Icon: FaPlane, label: 'Air Freight',    color: '#0ea5e9' },
                                                             { id: 'ocean', Icon: FaShip,  label: 'Ocean Freight',  color: '#2563eb' },
                                                             { id: 'road',  Icon: FaTruck, label: 'Road Transport', color: '#f59e0b' },
-                                                        ].map(({ id, Icon, label, color }) => {
+                                                        ].filter(({ id }) => rates.cbm?.[id]).map(({ id, Icon, label, color }) => {
                                                             const isActive = cbmTransportMode === id;
                                                             return (
                                                                 <button
@@ -638,14 +661,20 @@ export default function CftCalculator() {
                                                                     type="button"
                                                                     onClick={() => {
                                                                         setCbmTransportMode(id);
-                                                                        setCbmCftRate(rates[id]);
+                                                                        setCbmCftRate(rates.cbm[id]);
+                                                                        setCbmTransportError(false);
                                                                     }}
-                                                                    style={isActive ? { background: color, boxShadow: `0 4px 14px ${color}40` } : {}}
-                                                                    className={`flex flex-row items-center justify-center gap-2 py-2.5 px-2 rounded-xl text-xs font-bold transition-all duration-200 ${
+                                                                    style={isActive
+                                                                        ? { background: color, borderColor: color, boxShadow: `0 0 18px ${color}70, 0 0 6px ${color}50, 0 4px 12px ${color}40` }
+                                                                        : { borderColor: `${color}55`, color: color, boxShadow: `inset 0 0 0 0 ${color}` }
+                                                                    }
+                                                                    className={`flex flex-row items-center justify-center gap-2 py-3 px-2 rounded-xl text-xs font-bold border-2 cursor-pointer transition-all duration-250 select-none ${
                                                                         isActive
-                                                                            ? 'text-white'
-                                                                            : 'text-slate-500 hover:bg-white/80 hover:text-slate-700'
+                                                                            ? 'text-white scale-[1.03]'
+                                                                            : 'bg-white hover:scale-[1.03]'
                                                                     }`}
+                                                                    onMouseEnter={e => { if (!isActive) e.currentTarget.style.boxShadow = `0 0 12px ${color}45, 0 2px 8px ${color}30`; }}
+                                                                    onMouseLeave={e => { if (!isActive) e.currentTarget.style.boxShadow = `inset 0 0 0 0 ${color}`; }}
                                                                 >
                                                                     <Icon className="text-sm flex-shrink-0" />
                                                                     <span className="leading-tight">{label}</span>
@@ -653,6 +682,12 @@ export default function CftCalculator() {
                                                             );
                                                         })}
                                                     </div>
+                                                    {cbmTransportError && (
+                                                        <p className="mt-2 text-xs text-red-500 font-medium flex items-center gap-1.5">
+                                                            <span className="inline-block w-3.5 h-3.5 rounded-full bg-red-500 text-white text-[9px] flex items-center justify-center font-bold">!</span>
+                                                            Please select a transport mode before calculating.
+                                                        </p>
+                                                    )}
                                                 </div>
 
                                                 <div className="space-y-4 mb-6">
@@ -757,6 +792,46 @@ function QuotationModal({ data, onClose }) {
     const today      = new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' });
     const validUntil = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
                            .toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    /* ── Customer form gate ── */
+    const [submitted, setSubmitted] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+    const [formError, setFormError] = useState('');
+    const [custName, setCustName] = useState('');
+    const [custEmail, setCustEmail] = useState('');
+    const [custPhone, setCustPhone] = useState('');
+
+    const handleFormSubmit = async (e) => {
+        e.preventDefault();
+        if (!custName.trim() || !custEmail.trim() || !custPhone.trim()) { setFormError('All fields are required.'); return; }
+        setSubmitting(true); setFormError('');
+        const result = data.type === 'cft' ? data.cftResult : data.cbmResult;
+        const finalWeight = data.type === 'cft' ? data.chargedWeightResult?.chargedWeight : data.cbmResult?.weight;
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://ihwtest.kyleinfotech.co.in'}/api/submit_quotation.php`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    quotationNo: quotationNo.current,
+                    name: custName, email: custEmail, phone: custPhone,
+                    calcType: data.type,
+                    transportMode: data.transportMode,
+                    packages: data.packages,
+                    totalCft: result?.totalCft || 0,
+                    totalCbm: result?.totalCbm || 0,
+                    chargedWeight: finalWeight || 0,
+                    rate: data.rate || 0,
+                }),
+            });
+            const json = await res.json();
+            if (json.error) throw new Error(json.error);
+            setSubmitted(true);
+        } catch (err) {
+            setFormError('Failed to submit. Please try again.');
+        } finally {
+            setSubmitting(false);
+        }
+    };
 
     const transport = data.transportMode ? TRANSPORT_INFO[data.transportMode] : null;
     const result    = data.type === 'cft' ? data.cftResult : data.cbmResult;
@@ -919,23 +994,54 @@ function QuotationModal({ data, onClose }) {
                         </div>
                     </div>
 
-                    {/* ── Footer Actions ── */}
-                    <div id="quotation-modal-actions" className="border-t border-slate-100 px-8 py-4 bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-3">
-                        <p className="text-slate-400 text-xs text-center sm:text-left">Empire Logistics & Cargo · enquiry@empirelogistics.in</p>
-                        <div className="flex gap-2">
-                            <button
-                                onClick={() => window.print()}
-                                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-900 text-white text-sm font-bold hover:bg-slate-700 transition-all"
-                            >
-                                <FaFileInvoiceDollar className="text-xs" /> Print / Save PDF
-                            </button>
-                            <button
-                                onClick={onClose}
-                                className="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-white transition-all"
-                            >
-                                Close
-                            </button>
-                        </div>
+                    {/* ── Footer: customer form gate ── */}
+                    <div id="quotation-modal-actions" className="border-t border-slate-100 px-8 py-5 bg-slate-50">
+                        {!submitted ? (
+                            <>
+                                <p className="text-slate-600 text-sm font-semibold mb-3 flex items-center gap-2">
+                                    <FaFileInvoiceDollar className="text-accent" />
+                                    Fill in your details to download / print this quotation
+                                </p>
+                                <form onSubmit={handleFormSubmit} className="space-y-3">
+                                    <div className="grid sm:grid-cols-3 gap-3">
+                                        <input value={custName} onChange={e => setCustName(e.target.value)} placeholder="Your Name *" required
+                                            className="px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white" />
+                                        <input value={custEmail} onChange={e => setCustEmail(e.target.value)} placeholder="Email Address *" type="email" required
+                                            className="px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white" />
+                                        <input value={custPhone} onChange={e => setCustPhone(e.target.value)} placeholder="Phone Number *" required
+                                            className="px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white" />
+                                    </div>
+                                    {formError && <p className="text-red-500 text-xs">{formError}</p>}
+                                    <div className="flex gap-2 justify-end">
+                                        <button type="submit" disabled={submitting}
+                                            className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-slate-900 text-white text-sm font-bold hover:bg-slate-700 transition-all disabled:opacity-50">
+                                            {submitting ? 'Submitting…' : <><FaFileInvoiceDollar className="text-xs" /> Submit & Download</>}
+                                        </button>
+                                        <button type="button" onClick={onClose}
+                                            className="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-white transition-all">
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </form>
+                            </>
+                        ) : (
+                            <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+                                <p className="text-emerald-600 text-sm font-semibold flex items-center gap-2">
+                                    <span className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 text-xs">✓</span>
+                                    Details saved! You can now download the quotation.
+                                </p>
+                                <div className="flex gap-2">
+                                    <button onClick={() => window.print()}
+                                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-900 text-white text-sm font-bold hover:bg-slate-700 transition-all">
+                                        <FaFileInvoiceDollar className="text-xs" /> Print / Save PDF
+                                    </button>
+                                    <button onClick={onClose}
+                                        className="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-white transition-all">
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </motion.div>
             </div>

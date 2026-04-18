@@ -4,101 +4,122 @@ session_start();
 require_once '../db.php';
 require_once 'layout.php';
 
-// Fetch current settings
-$stmt = $pdo->query("SELECT setting_key, setting_value FROM settings WHERE setting_key IN ('rate_air', 'rate_ocean', 'rate_road')");
+$allKeys = ['rate_air','rate_ocean','rate_road','rate_air_cbm','rate_ocean_cbm','rate_road_cbm'];
+$placeholders = implode(',', array_fill(0, count($allKeys), '?'));
+$stmt = $pdo->prepare("SELECT setting_key, setting_value FROM settings WHERE setting_key IN ($placeholders)");
+$stmt->execute($allKeys);
 $rates = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $rate_air = trim($_POST['rate_air']);
-    $rate_ocean = trim($_POST['rate_ocean']);
-    $rate_road = trim($_POST['rate_road']);
-
+    $fields = ['rate_air','rate_ocean','rate_road','rate_air_cbm','rate_ocean_cbm','rate_road_cbm'];
     try {
         $pdo->beginTransaction();
         $updateStmt = $pdo->prepare("REPLACE INTO settings (setting_key, setting_value) VALUES (?, ?)");
-        $updateStmt->execute(['rate_air', $rate_air]);
-        $updateStmt->execute(['rate_ocean', $rate_ocean]);
-        $updateStmt->execute(['rate_road', $rate_road]);
+        foreach ($fields as $key) {
+            $updateStmt->execute([$key, trim($_POST[$key] ?? '')]);
+        }
         $pdo->commit();
-        
-        $_SESSION['success'] = "Freight Transport rates updated successfully!";
+        $_SESSION['success'] = "Rates updated successfully!";
         header("Location: settings.php");
         exit;
     } catch(PDOException $e) {
         $pdo->rollBack();
-        $_SESSION['error'] = "Error updating rates: " . $e->getMessage();
+        $_SESSION['error'] = "Error: " . $e->getMessage();
     }
 }
 
 renderHeader('Settings & Rates');
 ?>
 
-<div class="mb-6 flex items-center justify-between">
-    <div>
-        <h3 class="text-2xl font-bold text-slate-800">Settings & Rates</h3>
-        <p class="text-slate-500 mt-1">Manage core configuration and freight rates for the dashboard.</p>
-    </div>
+<div class="mb-6">
+    <h3 class="text-2xl font-bold text-slate-800">Settings & Rates</h3>
+    <p class="text-slate-500 mt-1">Set separate rates for CFT and CBM calculators. Leave blank or 0 to hide that transport mode button on the frontend.</p>
 </div>
 
 <?php if (isset($_SESSION['success'])): ?>
     <div class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-4 py-3 rounded-lg mb-6 flex items-center gap-3">
-        <i class="fas fa-check-circle text-emerald-500 text-lg"></i>
+        <i class="fas fa-check-circle text-emerald-500"></i>
         <span><?= htmlspecialchars($_SESSION['success']) ?></span>
         <?php unset($_SESSION['success']); ?>
     </div>
 <?php endif; ?>
 <?php if (isset($_SESSION['error'])): ?>
     <div class="bg-red-50 text-red-700 border border-red-200 px-4 py-3 rounded-lg mb-6 flex items-center gap-3">
-        <i class="fas fa-exclamation-circle text-red-500 text-lg"></i>
+        <i class="fas fa-exclamation-circle text-red-500"></i>
         <span><?= htmlspecialchars($_SESSION['error']) ?></span>
         <?php unset($_SESSION['error']); ?>
     </div>
 <?php endif; ?>
 
-<form method="POST" class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden max-w-2xl">
-    <div class="p-6 md:p-8 space-y-6">
-        <h4 class="text-lg font-semibold text-slate-800 border-b border-slate-100 pb-2 mb-4">Freight Calculator Rates</h4>
-        <p class="text-sm text-slate-500 mb-6">These rates operate per 1 CFT calculation and will be pre-filled dynamically in the frontend Freight Calculator based on the transport mode chosen.</p>
+<form method="POST" class="space-y-6 max-w-3xl">
 
-        <div class="grid grid-cols-1 gap-6">
-            <!-- Air Freight -->
+    <!-- CFT Rates -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100 bg-blue-50 flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center text-sm"><i class="fas fa-ruler-combined"></i></div>
             <div>
-                <label class="block text-sm font-medium text-slate-700 mb-2">Air Freight Rate (1 CFT / Kg)</label>
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-blue-500">
-                        <i class="fas fa-plane"></i>
-                    </div>
-                    <input type="number" step="0.01" name="rate_air" required class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-slate-400 font-mono text-sm" placeholder="e.g. 5.50" value="<?= htmlspecialchars($rates['rate_air'] ?? '') ?>">
-                </div>
-            </div>
-
-            <!-- Ocean Freight -->
-            <div>
-                <label class="block text-sm font-medium text-slate-700 mb-2">Ocean Freight Rate (1 CFT / Kg)</label>
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-cyan-500">
-                        <i class="fas fa-ship"></i>
-                    </div>
-                    <input type="number" step="0.01" name="rate_ocean" required class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 placeholder-slate-400 font-mono text-sm" placeholder="e.g. 2.00" value="<?= htmlspecialchars($rates['rate_ocean'] ?? '') ?>">
-                </div>
-            </div>
-
-            <!-- Road Transport -->
-            <div>
-                <label class="block text-sm font-medium text-slate-700 mb-2">Road Transport Rate (1 CFT / Kg)</label>
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-emerald-500">
-                        <i class="fas fa-truck"></i>
-                    </div>
-                    <input type="number" step="0.01" name="rate_road" required class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 placeholder-slate-400 font-mono text-sm" placeholder="e.g. 1.50" value="<?= htmlspecialchars($rates['rate_road'] ?? '') ?>">
-                </div>
+                <h4 class="font-bold text-slate-800">CFT Calculator Rates</h4>
+                <p class="text-xs text-slate-500">Rate per 1 CFT → Charged Weight (Kg). Leave 0 or blank to hide that mode button.</p>
             </div>
         </div>
+        <div class="p-6 grid grid-cols-1 sm:grid-cols-3 gap-5">
+            <?php foreach ([
+                ['rate_air',   'Air Freight',   'fa-plane',  'blue',    '#0ea5e9'],
+                ['rate_ocean', 'Ocean Freight', 'fa-ship',   'cyan',    '#2563eb'],
+                ['rate_road',  'Road Transport','fa-truck',  'emerald', '#f59e0b'],
+            ] as [$key, $label, $icon, $color, $hex]): ?>
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2"><?= $label ?></label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none" style="color:<?= $hex ?>">
+                        <i class="fas <?= $icon ?>"></i>
+                    </div>
+                    <input type="number" step="0.01" min="0" name="<?= $key ?>"
+                           class="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+                           placeholder="0.00"
+                           value="<?= htmlspecialchars($rates[$key] ?? '') ?>">
+                </div>
+                <p class="text-xs text-slate-400 mt-1">0 or blank = button hidden</p>
+            </div>
+            <?php endforeach; ?>
+        </div>
     </div>
-    
-    <div class="bg-slate-50 px-6 py-4 border-t border-slate-200 flex justify-end gap-3 rounded-b-xl">
-        <button type="submit" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-md shadow-blue-500/30 transition-all transform hover:-translate-y-0.5 flex items-center gap-2 focus:ring-2 focus:ring-blue-500">
-            <i class="fas fa-save"></i> Save Rates
+
+    <!-- CBM Rates -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100 bg-orange-50 flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-orange-500 text-white flex items-center justify-center text-sm"><i class="fas fa-cube"></i></div>
+            <div>
+                <h4 class="font-bold text-slate-800">CBM Calculator Rates</h4>
+                <p class="text-xs text-slate-500">Rate per 1 CFT → Charged Weight (Kg) for CBM tab. Leave 0 or blank to hide that mode button.</p>
+            </div>
+        </div>
+        <div class="p-6 grid grid-cols-1 sm:grid-cols-3 gap-5">
+            <?php foreach ([
+                ['rate_air_cbm',   'Air Freight',   'fa-plane', '#0ea5e9'],
+                ['rate_ocean_cbm', 'Ocean Freight', 'fa-ship',  '#2563eb'],
+                ['rate_road_cbm',  'Road Transport','fa-truck', '#f59e0b'],
+            ] as [$key, $label, $icon, $hex]): ?>
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2"><?= $label ?></label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none" style="color:<?= $hex ?>">
+                        <i class="fas <?= $icon ?>"></i>
+                    </div>
+                    <input type="number" step="0.01" min="0" name="<?= $key ?>"
+                           class="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 font-mono text-sm"
+                           placeholder="0.00"
+                           value="<?= htmlspecialchars($rates[$key] ?? '') ?>">
+                </div>
+                <p class="text-xs text-slate-400 mt-1">0 or blank = button hidden</p>
+            </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+
+    <div class="flex justify-end">
+        <button type="submit" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-md transition-all flex items-center gap-2">
+            <i class="fas fa-save"></i> Save All Rates
         </button>
     </div>
 </form>

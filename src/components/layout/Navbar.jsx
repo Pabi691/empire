@@ -10,6 +10,8 @@ const navLinks = [
     { path: '/services', label: 'Services' },
     { path: '/projects', label: 'Projects' },
     { path: '/gallery', label: 'Gallery' },
+    { path: '/freight-ed', label: 'FreightEd' },
+    { path: '/blogs', label: 'Blogs' },
     { path: '/contact', label: 'Contact' },
 ];
 
@@ -123,7 +125,7 @@ export default function Navbar() {
                                     {/* Live pulse dot */}
                                     <span className={`absolute -top-1 -right-1 w-2 h-2 rounded-full animate-pulse ${scrolled ? 'bg-accent' : 'bg-accent'}`} />
                                 </span>
-                                <span>Freight Calculator</span>
+                                <span>Weight Calculator</span>
                                 {/* Shimmer on hover */}
                                 <span
                                     className="absolute top-0 left-0 w-1/2 h-full pointer-events-none opacity-0 group-hover:opacity-100"
@@ -193,7 +195,7 @@ export default function Navbar() {
                                     className="w-full flex items-center gap-2 py-3 px-4 rounded-general font-heading font-semibold text-base text-accent hover:bg-accent/5 transition-all cursor-pointer"
                                 >
                                     <FaCalculator className="text-sm" />
-                                    Freight Calculator
+                                    Weight Calculator
                                 </button>
                             </motion.div>
                             <div className="pt-4 mt-2 border-t border-border-soft">

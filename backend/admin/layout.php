@@ -25,7 +25,13 @@ function renderHeader($title) {
                 <i class="fas fa-cubes w-5 text-center"></i> Services
             </a>
             <a href="settings.php" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 text-slate-300 font-medium transition-colors border border-transparent hover:border-slate-700">
-                <i class="fas fa-cog w-5 text-center"></i> Settings
+                <i class="fas fa-cog w-5 text-center"></i> Settings & Rates
+            </a>
+            <a href="blog.php" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 text-slate-300 font-medium transition-colors border border-transparent hover:border-slate-700">
+                <i class="fas fa-newspaper w-5 text-center"></i> Blog Posts
+            </a>
+            <a href="quotations.php" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 text-slate-300 font-medium transition-colors border border-transparent hover:border-slate-700">
+                <i class="fas fa-file-invoice w-5 text-center"></i> Quotation Requests
             </a>
             <div class="pt-4 mt-4 border-t border-slate-800">
                 <a href="../../index.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-colors border border-transparent" target="_blank">

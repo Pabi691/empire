@@ -1,7 +1,36 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import SectionTitle from '../../ui/SectionTitle';
+import Button from '../../ui/Button';
 import countries from '../../../data/countries';
+import { FaArrowRight, FaMapMarkerAlt, FaPhone, FaEnvelope } from 'react-icons/fa';
+
+const offices = [
+    {
+        city: 'Kolkata',
+        country: 'India (HQ)',
+        address: 'Kolkata, West Bengal, India',
+        phone: '+91 84204 42975',
+        email: 'info@empirelogistics.in',
+        flag: '🇮🇳',
+    },
+    {
+        city: 'Dhaka',
+        country: 'Bangladesh',
+        address: 'Dhaka, Bangladesh',
+        phone: '+880 1700 000000',
+        email: 'bd@empirelogistics.in',
+        flag: '🇧🇩',
+    },
+    {
+        city: 'Kathmandu',
+        country: 'Nepal',
+        address: 'Kathmandu, Nepal',
+        phone: '+977 1 4000000',
+        email: 'np@empirelogistics.in',
+        flag: '🇳🇵',
+    },
+];
 
 /* Country flag + photo card */
 function CountryCard({ country, index }) {
@@ -74,9 +103,9 @@ export default function CountriesWeServe() {
 
             <div className="container-empire relative z-10">
                 <SectionTitle
-                    label="Global Reach"
-                    title="Countries We Serve"
-                    subtitle="Strategic presence across key trade corridors in South and Southeast Asia, plus the Middle East."
+                    label="Discover Our Network"
+                    title="Way To Your Logistics Solutions"
+                    subtitle="20+ locations and expanding — offices, depots, and service areas across South and Southeast Asia connecting your cargo to the world."
                 />
 
                 {/* 6 country image cards */}
@@ -95,7 +124,7 @@ export default function CountriesWeServe() {
                     transition={{ duration: 0.6 }}
                 >
                     {[
-                        { num: '6+', label: 'Countries Served' },
+                        { num: '20+', label: 'Locations & Counting' },
                         { num: '15+', label: 'Trade Corridors' },
                         { num: '50+', label: 'Port Connections' },
                         { num: '100%', label: 'Customs Compliant' },
@@ -105,6 +134,74 @@ export default function CountriesWeServe() {
                             <span className="text-text-muted text-xs font-accent uppercase tracking-wider mt-1">{item.label}</span>
                         </div>
                     ))}
+                </motion.div>
+
+                {/* Discover more link */}
+                <motion.div
+                    className="text-center mt-8"
+                    initial={{ opacity: 0, y: 16 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: 0.2 }}
+                >
+                    <Button variant="outline" icon={<FaArrowRight />} onClick={() => window.location.href = '/contact'}>
+                        Discover More
+                    </Button>
+                </motion.div>
+
+                {/* We Are Right Here — office cards */}
+                <motion.div
+                    className="mt-20"
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6 }}
+                >
+                    <h3 className="font-heading font-extrabold text-h3-mobile md:text-h3 text-text-primary text-center mb-2">
+                        We Are Right Here
+                    </h3>
+                    <p className="text-text-muted text-center text-sm mb-10">
+                        Reach out to our local teams — we're always close to where your cargo needs us.
+                    </p>
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {offices.map((office, i) => (
+                            <motion.div
+                                key={i}
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ duration: 0.4, delay: i * 0.1 }}
+                                className="bg-white rounded-card border border-border-soft shadow-standard p-6 hover:shadow-hover transition-all duration-300"
+                            >
+                                <div className="flex items-center gap-3 mb-4">
+                                    <span className="text-3xl">{office.flag}</span>
+                                    <div>
+                                        <h4 className="font-heading font-bold text-text-primary text-base">{office.city}</h4>
+                                        <p className="text-text-muted text-xs">{office.country}</p>
+                                    </div>
+                                </div>
+                                <div className="space-y-2 text-sm">
+                                    <div className="flex items-start gap-2 text-text-muted">
+                                        <FaMapMarkerAlt className="text-accent flex-shrink-0 mt-0.5" />
+                                        <span>{office.address}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-text-muted">
+                                        <FaPhone className="text-accent flex-shrink-0" />
+                                        <a href={`tel:${office.phone}`} className="hover:text-primary transition-colors">{office.phone}</a>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-text-muted">
+                                        <FaEnvelope className="text-accent flex-shrink-0" />
+                                        <a href={`mailto:${office.email}`} className="hover:text-primary transition-colors">{office.email}</a>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+                    <div className="text-center mt-8">
+                        <Button variant="primary" icon={<FaArrowRight />} onClick={() => window.location.href = '/contact'}>
+                            Contact Our Nearest Office
+                        </Button>
+                    </div>
                 </motion.div>
             </div>
         </section>

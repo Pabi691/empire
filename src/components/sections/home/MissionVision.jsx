@@ -6,7 +6,7 @@ const items = [
     {
         icon: <FaBullseye />,
         title: 'Our Mission',
-        desc: 'To simplify cross-border trade by providing reliable, transparent, and technology-driven freight forwarding solutions that empower businesses to expand globally.',
+        desc: 'To simplify cross-border logistics for businesses across South and Southeast Asia — combining industry expertise, cutting-edge technology, and trusted regional partnerships to deliver solutions that scale with your business.',
         gradient: 'linear-gradient(135deg, #0c328e, #1a4fbd)',
         accent: '#0c328e',
         delay: 0,
@@ -14,15 +14,15 @@ const items = [
     {
         icon: <FaEye />,
         title: 'Our Vision',
-        desc: 'To be the most trusted logistics partner in South Asia, recognized for operational excellence, innovation, and unwavering commitment to client success.',
+        desc: 'To be the most trusted cross-border logistics partner in South and Southeast Asia — recognized for operational excellence, technology-driven innovation, and an unwavering commitment to client success across every corridor we serve.',
         gradient: 'linear-gradient(135deg, #f06f1f, #f5a623)',
         accent: '#f06f1f',
         delay: 0.15,
     },
     {
         icon: <FaHandshake />,
-        title: 'Our Promise',
-        desc: 'Every shipment is a commitment. We promise transparency, reliability, and personalized attention to ensure your cargo reaches its destination — safely, on time, every time.',
+        title: "Founders' Vision",
+        desc: "Empire Logistics was built on a simple belief: cross-border trade should not be complicated. Our founders envisioned a logistics company that combines regional expertise with technology — creating pathways for businesses to grow beyond borders, without the hassle. Every shipment we handle carries that founding promise forward.",
         gradient: 'linear-gradient(135deg, #0a2870, #0c328e)',
         accent: '#1a4fbd',
         delay: 0.3,

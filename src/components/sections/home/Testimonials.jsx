@@ -2,7 +2,9 @@ import React, { useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import SectionTitle from '../../ui/SectionTitle';
 import TestimonialCard from '../../ui/TestimonialCard';
+import Button from '../../ui/Button';
 import testimonials from '../../../data/testimonials';
+import { FaArrowRight } from 'react-icons/fa';
 
 export default function Testimonials() {
     const ref = useRef(null);
@@ -45,10 +47,21 @@ export default function Testimonials() {
             <div className="container-empire relative z-10">
                 <SectionTitle
                     label="Client Stories"
-                    title="What Our Clients Say"
-                    subtitle="Real feedback from real partners who trust Empire Logistics with their cross-border trade."
+                    title="What Our Clients Say?"
+                    subtitle="Real experiences from businesses we've helped — overcoming challenges, navigating complex corridors, and delivering cargo safely without damage, every time."
                     light
                 />
+                <motion.div
+                    className="text-center mb-6"
+                    initial={{ opacity: 0, y: 16 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5 }}
+                >
+                    <Button variant="glass" icon={<FaArrowRight />} onClick={() => window.location.href = '/projects'}>
+                        Read Case Studies
+                    </Button>
+                </motion.div>
             </div>
 
             {/* Marquee carousel — glass cards */}

@@ -5,10 +5,10 @@ import ScrollReveal from '../../ui/ScrollReveal';
 import { FaArrowRight, FaCheckCircle } from 'react-icons/fa';
 
 const highlights = [
-    'MTO Licensed — DG Shipping Certified',
-    'Cross-border specialist: 6 countries',
-    'Real-time shipment tracking',
-    'Dedicated customs clearance team',
+    'Industry expertise across South & Southeast Asia',
+    'Technology-driven, scalable freight solutions',
+    'Strong regional partnerships across all corridors',
+    'End-to-end visibility from quote to delivery',
 ];
 
 export default function AboutSnippet() {
@@ -64,16 +64,15 @@ export default function AboutSnippet() {
                     {/* Right — Content */}
                     <ScrollReveal direction="right">
                         <span className="inline-block font-accent text-xs uppercase tracking-[1.5px] text-accent font-medium mb-3">
-                            About Empire Logistics
+                            Who We Are
                         </span>
                         <h2 className="font-heading font-extrabold text-h2-mobile md:text-h2 text-text-primary mb-5">
-                            Your Trusted Cross-Border <span className="gradient-text-blue">Freight Partner</span>
+                            Simplifying Cross-Border <span className="gradient-text-blue">Logistics</span>
                         </h2>
                         <p className="text-text-muted text-body leading-relaxed mb-6">
-                            Empire Logistics is a Kolkata-based, MTO-licensed cross-border freight forwarding company
-                            specializing in seamless trade connectivity across South Asia and beyond. With expertise
-                            spanning ocean freight, air cargo, customs clearance, and warehousing, we make international
-                            trade simple and reliable.
+                            At Empire Logistics, we simplify cross-border logistics for businesses across South and
+                            Southeast Asia. We combine industry expertise, technology, and regional partnerships to
+                            deliver solutions that scale with your business.
                         </p>
 
                         {/* Staggered bullet points */}

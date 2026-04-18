@@ -9,6 +9,8 @@ import WhyChooseUs from '../components/sections/home/WhyChooseUs';
 import CountriesWeServe from '../components/sections/home/CountriesWeServe';
 import Milestones from '../components/sections/home/Milestones';
 import Testimonials from '../components/sections/home/Testimonials';
+import StoriesInTransit from '../components/sections/home/StoriesInTransit';
+import ShipmentTracker from '../components/sections/home/ShipmentTracker';
 import HomeCTA from '../components/sections/home/HomeCTA';
 
 export default function HomePage() {
@@ -24,6 +26,8 @@ export default function HomePage() {
             <CountriesWeServe />
             <Milestones />
             <Testimonials />
+            <StoriesInTransit />
+            <ShipmentTracker />
             <HomeCTA />
         </>
     );
