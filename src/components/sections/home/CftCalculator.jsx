@@ -974,12 +974,6 @@ function QuotationModal({ data, onClose }) {
                                                 {finalWeight}<span className="text-base font-normal text-slate-400 ml-2">Kg</span>
                                             </p>
                                         </div>
-                                        {data.rate && (
-                                            <div className="text-right bg-white rounded-xl px-5 py-3 border border-amber-100 shadow-sm">
-                                                <p className="text-slate-400 text-xs mb-1">Applied Rate</p>
-                                                <p className="font-heading font-bold text-slate-700 text-xl">{data.rate} <span className="text-xs text-slate-400 font-normal">/Kg</span></p>
-                                            </div>
-                                        )}
                                     </div>
                                 </div>
                             </div>
