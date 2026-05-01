@@ -10,7 +10,7 @@ const iconMap = {
 /* Map service id to the real image we generated */
 const serviceImages = {
     'freight-forwarding': '/svc-freight-forwarding.png',
-    'custom-clearance': '/svc-custom-clearance.png',
+    'custom-clearance': '/svc-custom-clearance.jpeg',
     'air-freight': '/svc-air-freight.png',
     'nvocc': '/svc-nvocc.png',
     'warehousing': '/svc-warehousing.png',
